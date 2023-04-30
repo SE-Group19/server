@@ -86,5 +86,3 @@ class Payment(models.Model):
 
 
 
-#AUTH_USER_MODEL = 'your_app.User'
-#This will tell Django to use your custom User model instead of the built-in User model for authentication and authorization
