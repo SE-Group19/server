@@ -1,4 +1,3 @@
-import unittest
 from django.test import TestCase
 from django.contrib.auth.models import User
 from datetime import datetime
@@ -23,14 +22,14 @@ class EventModelTestCase(TestCase):
 class BookingModelTestCase(TestCase):
     def setUp(self):
         self.event = Event.objects.create(name='Test Event', price=100)
-        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.user = User.objects.create_user(username='testUser', password='testPass')
         self.booking = Booking.objects.create(event=self.event, user=self.user, quantity=2)
 
     def test_booking_total_amount(self):
         self.assertEqual(self.booking.total_amount, 200)
 
     def test_booking_str(self):
-        self.assertEqual(str(self.booking), '2 tickets for Test Event by testuser')
+        self.assertEqual(str(self.booking), '2 tickets for Test Event by testUser')
 
 
 class PaymentModelTestCase(TestCase):
@@ -42,7 +41,3 @@ class PaymentModelTestCase(TestCase):
 
     def test_payment_str(self):
         self.assertEqual(str(self.payment), 'completed payment for 1 tickets for Test Event by testuser')
-
-
-if __name__ == '__main__':
-    unittest.main()

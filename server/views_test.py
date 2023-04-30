@@ -1,10 +1,9 @@
-import unittest
-from django.test import TestCase, Client
+from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 from .models import Booking, Event
-from .serializers import BookingSerializer, EventSerializer
+from .serializers import EventSerializer
 
 
 # initialize the APIClient app
@@ -109,7 +108,3 @@ class BookingTestCase(TestCase):
             email='test1@example.com'
 
         )
-
-
-if __name__ == '__main__':
-    unittest.main()
