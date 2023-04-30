@@ -1,10 +1,13 @@
-from django.urls import path
-from . import views
+from django.urls import path, include
+from rest_framework.authtoken.views import obtain_auth_token
+
+from .views import event_list, event_detail, booking_list, booking_detail
 
 urlpatterns = [
-    path('hello/', views.say_hello),
-    path('home/', views.home),
-    path('event_detail/<int:event_id>/', views.event_detail, name='event_detail'),
-    path('book_event/<int:event_id>/book/', views.book_event, name='book_event'),
-    path('my_bookings/', views.my_bookings, name='my_bookings'),
-    ]
+    path('api-auth/', include('rest_framework.urls')),
+    path('api-token-auth/', obtain_auth_token, name='api_token_auth'),
+    path('api/events/', event_list, name='event_list'),
+    path('api/events/<int:pk>/', event_detail, name='event_detail'),
+    path('api/bookings/', booking_list, name='booking_list'),
+    path('api/bookings/<int:pk>/', booking_detail, name='booking_detail'),
+]

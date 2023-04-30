@@ -1,44 +1,91 @@
-from django.shortcuts import render, redirect , get_object_or_404
-from django.http import HttpResponse
-from django.contrib import messages
-from .models import Event, Booking
-from .forms import BookingForm
-from django.template import loader
+from django.shortcuts import get_object_or_404
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Booking, Event
+from .serializers import BookingSerializer, EventSerializer
 
 
-def say_hello(request):
-    return HttpResponse('Hello world')
+@api_view(['GET', 'POST'])
+def event_list(request):
+    if request.method == 'GET':
+        events = Event.objects.all()
+        serializer = EventSerializer(events, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = EventSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-def home(request):
-    events = Event.objects.all()
-    return render(request, 'server/home.html', {'events': events})
+@api_view(['GET', 'PUT', 'DELETE'])
+def event_detail(request, pk):
+    event = get_object_or_404(Event, pk=pk)
+
+    if request.method == 'GET':
+        serializer = EventSerializer(event)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = EventSerializer(event, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        event.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-def event_detail(request, event_id):
-    event = get_object_or_404(Event, pk=event_id)
-    template = loader.get_template('event.html')
-    return HttpResponse(render(request, 'server/event_detail.html', {'event': event}))
-    #return render(request, 'server/event_detail.html', {'event': event})
+@api_view(['GET', 'POST'])
+def booking_list(request):
+    if request.method == 'GET':
+        bookings = Booking.objects.all()
+        serializer = BookingSerializer(bookings, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = BookingSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+
+            # Payment processing
+            payment_status = request.data.get('payment_status')
+            if payment_status == 'complete':
+                booking = serializer.instance
+                booking.status = 'paid'
+                booking.save()
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-def book_event(request, event_id):
-    template = loader.get_template('event.html')
-    event = get_object_or_404(Event, pk=event_id)
-    if request.method == 'POST':
-        form = BookingForm(request.POST)
-        if form.is_valid():
-            booking = form.save(commit=False)
-            booking.event = event
-            booking.save()
-            messages.success(request, 'Booking successful!')
-            return redirect('my_bookings')
-    else:
-        form = BookingForm()
-    return render(request, 'server/book_event.html', {'event': event, 'form': form})
+@api_view(['GET', 'PUT', 'DELETE'])
+def booking_detail(request, pk):
+    booking = get_object_or_404(Booking, pk=pk)
 
+    if request.method == 'GET':
+        serializer = BookingSerializer(booking)
+        return Response(serializer.data)
 
-def my_bookings(request):
-    bookings = Booking.objects.filter(user=request.user)
-    template = loader.get_template('event.html')
-    return render(request, 'server/my_bookings.html', {'bookings': bookings})
+    elif request.method == 'PUT':
+        serializer = BookingSerializer(booking, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+
+            # Payment processing
+            payment_status = request.data.get('payment_status')
+            if payment_status == 'complete':
+                booking.status = 'paid'
+                booking.save()
+
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        booking.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
