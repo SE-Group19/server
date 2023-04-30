@@ -44,6 +44,9 @@ class User(AbstractBaseUser):
 
 class Event(models.Model):
     title = models.CharField(max_length=200)
+    slug = models.SlugField(
+
+    )
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     location = models.CharField(max_length=200)
@@ -58,6 +61,18 @@ class Booking(models.Model):
 
 
 class Payment(models.Model):
+    PAYMENT_STATUS_PENDING = 'P'
+    PAYMENT_STATUS_COMPLETE = 'C'
+    PAYMENT_STATUS_FAILED = 'F'
+
+    PAYMENT_STATUS_CHOICES = [
+        (PAYMENT_STATUS_PENDING, 'Pending'),
+        (PAYMENT_STATUS_COMPLETE, 'Complete'),
+        (PAYMENT_STATUS_FAILED, 'Failed',),
+    ]
+
+    payment_status = models.CharField(max_length=1, choices=PAYMENT_STATUS_CHOICES, default=PAYMENT_STATUS_PENDING)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
     booking = models.ForeignKey(Booking, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=8, decimal_places=2)
     date_paid = models.DateTimeField(auto_now_add=True)
